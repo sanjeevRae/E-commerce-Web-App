@@ -17,7 +17,8 @@ function hashPassword(password: string) {
 }
 
 function publicUser(user: CustomerRecord) {
-  const { passwordHash: _passwordHash, ...safe } = user;
+  const safe = { ...user };
+  delete safe.passwordHash;
   return safe;
 }
 
@@ -48,7 +49,8 @@ export async function POST(request: NextRequest) {
       email: method === 'phone' ? String(existing?.email || '') : credential,
       phone: method === 'phone' ? credential : String(existing?.phone || ''),
       passwordHash: method === 'google' ? String(existing?.passwordHash || '') : hashPassword(password),
-      photo: String(existing?.photo || ''),
+      photo: String(body.photo || existing?.photo || ''),
+      firebaseUid: String(body.firebaseUid || existing?.firebaseUid || ''),
       address: String(existing?.address || ''),
       updatedAt: new Date().toISOString(),
       createdAt: String(existing?.createdAt || new Date().toISOString()),
@@ -82,3 +84,6 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: error instanceof Error ? error.message : 'Profile update failed.' }, { status: 500 });
   }
 }
+
+
+

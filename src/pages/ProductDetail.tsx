@@ -7,7 +7,6 @@ import { BadgePercent, ChevronDown, Clock, Package, Search, ShoppingCart, Star, 
 import { products, type Product } from '@/data/products';
 import { useCart } from '@/context/CartContext';
 import Footer from '@/components/Footer';
-import CartDrawer from '@/components/CartDrawer';
 
 const shippingItems = [
   { label: 'Discount', value: 'Disc 50%', icon: BadgePercent },
@@ -33,7 +32,7 @@ type ProductDetailProps = {
 
 export default function ProductDetail({ product: productProp, productId, relatedProducts: relatedProductsProp }: ProductDetailProps) {
   const router = useRouter();
-  const { addToCart, totalItems, setIsCartOpen, trackActivity } = useCart();
+  const { addToCart, totalItems, trackActivity } = useCart();
   const [selectedSize, setSelectedSize] = useState('M');
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -105,7 +104,6 @@ export default function ProductDetail({ product: productProp, productId, related
 
   return (
     <div className="min-h-screen bg-white text-[#111111]">
-      <CartDrawer />
 
       <main className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6 lg:px-8">
         <header className="mb-6 sm:mb-7">
@@ -166,7 +164,7 @@ export default function ProductDetail({ product: productProp, productId, related
                   </div>
                 )}
               </div>
-              <button onClick={() => setIsCartOpen(true)} className="icon-button relative">
+              <button onClick={() => router.push('/cart')} className="icon-button relative">
                 <ShoppingCart size={16} />
                 {totalItems > 0 && <span className="absolute -right-1 -top-1 h-4 min-w-4 rounded-full bg-[#111111] px-1 text-[10px] text-white">{totalItems}</span>}
               </button>
@@ -373,5 +371,8 @@ export default function ProductDetail({ product: productProp, productId, related
     </div>
   );
 }
+
+
+
 
 
