@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ChevronDown, Menu, Search, ShoppingCart, UserCircle, X } from 'lucide-react';
+import { ChevronDown, Menu, Search, ShoppingCart, X } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useCustomerAuth } from '@/context/CustomerAuthContext';
 import type { Product } from '@/data/products';
@@ -19,12 +19,26 @@ export default function Navbar() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [countdown, setCountdown] = useState('22h37m54s');
-  const { totalItems, setIsCartOpen, trackActivity } = useCart();
+  const { totalItems, trackActivity } = useCart();
   const { user, openLogin, logout } = useCustomerAuth();
   const router = useRouter();
   const pathname = usePathname();
   const isHome = pathname === '/';
+  const displayName = user?.name?.trim() || user?.email?.split('@')[0] || 'Profile';
+  const initials = displayName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0]?.toUpperCase())
+    .join('') || '?';
 
+  const renderProfileAvatar = (className = 'h-8 w-8') => user?.photo ? (
+    <img src={user.photo} alt={displayName} className={`${className} rounded-full object-cover ring-1 ring-[#e5e5e5]`} />
+  ) : (
+    <span className={`${className} inline-flex items-center justify-center rounded-full bg-[#f3f3f3] text-[11px] font-semibold text-[#111111] ring-1 ring-[#e5e5e5]`}>
+      {user ? initials : '?'}
+    </span>
+  );
   const categoryMenus: Record<string, string[]> = {
     Best: ['Top Selling Men', 'Top Selling Women', 'Top Selling Kids', 'Most Loved Products'],
     Men: ['T-Shirts', 'Shirts', 'Polo Shirts', 'Jeans', 'Pants & Trousers', 'Shorts', 'Hoodies & Sweatshirts', 'Jackets', 'Coats', 'Blazers', 'Suits'],
@@ -211,7 +225,7 @@ export default function Navbar() {
               Search
             </button>
             <button
-              onClick={() => setIsCartOpen(true)}
+              onClick={() => router.push('/cart')}
               className="hidden items-center gap-2 p-1 text-xs font-medium text-[#111111] md:flex"
               aria-label="Cart"
             >
@@ -221,22 +235,24 @@ export default function Navbar() {
             {user ? (
               <div className="hidden items-center gap-3 md:flex">
                 <button onClick={() => router.push('/profile')} className="flex items-center gap-2 p-1 text-xs font-medium text-[#111111]">
-                  <UserCircle size={22} strokeWidth={1.5} />
-                  {user.name}
+                  {renderProfileAvatar('h-8 w-8')}
+                  <span className="max-w-[120px] truncate">{displayName}</span>
                 </button>
                 <button onClick={logout} className="text-xs text-[#777] underline">Logout</button>
               </div>
             ) : (
               <button onClick={openLogin} className="hidden items-center gap-2 p-1 text-xs font-medium text-[#111111] md:flex">
-                <UserCircle size={22} strokeWidth={1.5} />
+                {renderProfileAvatar('h-8 w-8')}
                 Login / Register
               </button>
             )}
-            <button onClick={() => user ? router.push('/profile') : openLogin()} className="md:hidden" aria-label="Profile"><UserCircle size={18} /></button>
+            <button onClick={() => user ? router.push('/profile') : openLogin()} className="md:hidden" aria-label="Profile">
+              {renderProfileAvatar('h-8 w-8')}
+            </button>
             <button onClick={openSearch} className="md:hidden" aria-label="Search">
               <Search size={18} />
             </button>
-            <button onClick={() => setIsCartOpen(true)} className="relative md:hidden" aria-label="Cart">
+            <button onClick={() => router.push('/cart')} className="relative md:hidden" aria-label="Cart">
               <ShoppingCart size={18} />
               {totalItems > 0 && (
                 <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#111111] px-1 text-[10px] text-white">
@@ -326,6 +342,10 @@ export default function Navbar() {
     </>
   );
 }
+
+
+
+
 
 
 

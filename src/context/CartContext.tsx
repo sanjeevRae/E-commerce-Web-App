@@ -19,7 +19,7 @@ type CartContextValue = {
   removeFromCart: (productId: string, selectedSize?: string) => void;
   updateQuantity: (productId: string, quantity: number, selectedSize?: string) => void;
   clearCart: () => void;
-  checkout: () => Promise<void>;
+  checkout: (details?: { deliveryFee?: number; deliveryLabel?: string; shippingAddress?: Record<string, string>; voucherCode?: string }) => Promise<void>;
   checkoutStatus: string;
   trackActivity: (type: string, data?: Record<string, unknown>) => void;
 };
@@ -97,7 +97,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return [...current, { ...product, quantity, selectedSize }];
     });
     trackActivity('add_to_cart', { productId: product.id, name: product.name, quantity, selectedSize });
-    setIsCartOpen(true);
+
   }, [openLogin, trackActivity, user]);
 
   const removeFromCart = useCallback((productId: string, selectedSize?: string) => {
@@ -116,7 +116,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = useCallback(() => setItems([]), []);
 
-  const checkout = useCallback(async () => {
+  const checkout = useCallback(async (details: { deliveryFee?: number; deliveryLabel?: string; shippingAddress?: Record<string, string>; voucherCode?: string } = {}) => {
     if (!user) {
       openLogin();
       return;
@@ -126,7 +126,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const response = await fetch('/api/customer/checkout', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ user, items: compactItems(items), subtotal: totalPrice }),
+      body: JSON.stringify({ user, items: compactItems(items), subtotal: totalPrice, ...details }),
     });
     const data = await response.json();
     if (!response.ok) {
@@ -161,4 +161,5 @@ export function useCart() {
   if (!context) throw new Error('useCart must be used within a CartProvider');
   return context;
 }
+
 

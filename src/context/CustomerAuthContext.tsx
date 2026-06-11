@@ -12,7 +12,7 @@ export type Customer = {
   address?: string;
 };
 
-type LoginPayload = { mode: 'login' | 'register'; method: 'email' | 'google' | 'phone'; email?: string; phone?: string; password?: string; name?: string };
+type LoginPayload = { mode: 'login' | 'register'; method: 'email' | 'google' | 'phone'; email?: string; phone?: string; password?: string; name?: string; photo?: string; firebaseUid?: string };
 
 type AuthContextValue = {
   user: Customer | null;
@@ -88,3 +88,4 @@ export function useCustomerAuth() {
   if (!context) throw new Error('useCustomerAuth must be used inside CustomerAuthProvider');
   return context;
 }
+
