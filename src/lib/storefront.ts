@@ -28,6 +28,18 @@ export type HeroBanner = {
   enabled?: boolean;
 };
 
+export type NoticeBanner = {
+  id: string;
+  title?: string;
+  message: string;
+  quote?: string;
+  countdownTo?: string;
+  startsAt?: string;
+  endsAt?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
+  enabled?: boolean;
+};
 export type StoreCategory = {
   id?: string;
   name: string;
@@ -37,6 +49,7 @@ export type StoreCategory = {
 };
 
 export type HomepageConfig = {
+  noticeBanners: NoticeBanner[];
   heroBanners: HeroBanner[];
   featuredProducts: Product[];
   latestProducts: Product[];
@@ -208,7 +221,8 @@ export async function getProductById(id: string) {
 }
 
 export async function getHomepageConfig(): Promise<HomepageConfig> {
-  const [heroBanners, products, featuredProducts, collections, categories, testimonials] = await Promise.all([
+  const [noticeBanners, heroBanners, products, featuredProducts, collections, categories, testimonials] = await Promise.all([
+    fetchCollection<NoticeBanner>('homepage/noticeBanners/items'),
     fetchCollection<HeroBanner>('homepage/heroBanners/items'),
     getProductsByQuery({ limit: 10 }),
     fetchCollection<Product>('homepage/featuredProducts/items'),
@@ -218,7 +232,17 @@ export async function getHomepageConfig(): Promise<HomepageConfig> {
   ]);
 
   return {
-    heroBanners: heroBanners.length
+    noticeBanners: noticeBanners.length
+      ? noticeBanners.filter(notice => notice.enabled !== false)
+      : [
+          {
+            id: 'notice-local',
+            title: 'Summer Sale',
+            message: 'Get 50% Off This Summer Sale. Grab It Fast!',
+            countdownTo: new Date(Date.now() + (22 * 60 * 60 + 37 * 60 + 54) * 1000).toISOString(),
+            enabled: true,
+          },
+        ],    heroBanners: heroBanners.length
       ? heroBanners.filter(banner => banner.enabled !== false)
       : [
           {
@@ -242,6 +266,8 @@ export async function getHomepageConfig(): Promise<HomepageConfig> {
     testimonials: testimonials.length ? testimonials : fallbackTestimonials,
   };
 }
+
+
 
 
 

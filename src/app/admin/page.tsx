@@ -5,6 +5,7 @@ import SeedStorefrontButton from '@/components/admin/SeedStorefrontButton';
 
 const collections = [
   { name: 'Products', path: 'products', fields: 'Prices, images, stock, colors, SEO', count: 'Store' },
+  { name: 'Notice Banner', path: 'homepage/noticeBanners/items', fields: 'Quote, message, schedule, countdown, CTA', count: 'CMS' },
   { name: 'Hero', path: 'homepage/heroBanners/items', fields: 'Title, copy, CTA buttons, hero image', count: 'Landing' },
   { name: 'Collections', path: 'homepage/collections/items', fields: 'Collection title and feature image', count: 'CMS' },
   { name: 'Categories', path: 'categories', fields: 'Name, stock count, category image', count: 'Browse' },
@@ -100,4 +101,5 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     </main>
   );
 }
+
 

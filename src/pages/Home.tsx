@@ -20,7 +20,7 @@ type HomeProps = {
 export default function Home({ homepage }: HomeProps) {
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
+      <Navbar notices={homepage?.noticeBanners} />
       <CartDrawer />
       <main>
         <Hero banners={homepage?.heroBanners} />
