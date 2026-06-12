@@ -885,6 +885,21 @@
   .h-28 {
     height: calc(var(--spacing) * 28);
   }
+  .h-44 {
+    height: calc(var(--spacing) * 44);
+  }
+  .h-52 {
+    height: calc(var(--spacing) * 52);
+  }
+  .h-56 {
+    height: calc(var(--spacing) * 56);
+  }
+  .h-60 {
+    height: calc(var(--spacing) * 60);
+  }
+  .h-72 {
+    height: calc(var(--spacing) * 72);
+  }
   .h-\[1\.15rem\] {
     height: 1.15rem;
   }
@@ -1531,6 +1546,9 @@
   .grid-cols-\[34px_1fr_22px\] {
     grid-template-columns: 34px 1fr 22px;
   }
+  .grid-cols-\[48px_1fr_auto\] {
+    grid-template-columns: 48px 1fr auto;
+  }
   .grid-cols-\[112px_1fr\] {
     grid-template-columns: 112px 1fr;
   }
@@ -1910,6 +1928,9 @@
   .border-\[\#e2e2e2\] {
     border-color: #e2e2e2;
   }
+  .border-\[\#e4ded6\] {
+    border-color: #e4ded6;
+  }
   .border-\[\#e5e5e5\] {
     border-color: #e5e5e5;
   }
@@ -1997,6 +2018,9 @@
   .bg-\[\#1d1d1d\] {
     background-color: #1d1d1d;
   }
+  .bg-\[\#1f6feb\] {
+    background-color: #1f6feb;
+  }
   .bg-\[\#8f1f35\] {
     background-color: #8f1f35;
   }
@@ -2047,6 +2071,9 @@
   }
   .bg-\[\#ececec\] {
     background-color: #ececec;
+  }
+  .bg-\[\#ecfdf3\] {
+    background-color: #ecfdf3;
   }
   .bg-\[\#ecfdf5\] {
     background-color: #ecfdf5;
@@ -2666,6 +2693,9 @@
   }
   .align-middle {
     vertical-align: middle;
+  }
+  .align-top {
+    vertical-align: top;
   }
   .font-body {
     font-family: var(--font-body);
@@ -6175,6 +6205,11 @@
       align-items: flex-end;
     }
   }
+  .sm\:items-start {
+    @media (width >= 40rem) {
+      align-items: flex-start;
+    }
+  }
   .sm\:justify-between {
     @media (width >= 40rem) {
       justify-content: space-between;
@@ -6770,6 +6805,11 @@
       padding-inline: calc(var(--spacing) * 6);
     }
   }
+  .md\:px-7 {
+    @media (width >= 48rem) {
+      padding-inline: calc(var(--spacing) * 7);
+    }
+  }
   .md\:px-8 {
     @media (width >= 48rem) {
       padding-inline: calc(var(--spacing) * 8);
@@ -6798,6 +6838,11 @@
   .md\:py-24 {
     @media (width >= 48rem) {
       padding-block: calc(var(--spacing) * 24);
+    }
+  }
+  .md\:pb-7 {
+    @media (width >= 48rem) {
+      padding-bottom: calc(var(--spacing) * 7);
     }
   }
   .md\:text-left {
@@ -7137,6 +7182,16 @@
   .xl\:grid-cols-\[360px_minmax\(0\,1fr\)_360px\] {
     @media (width >= 80rem) {
       grid-template-columns: 360px minmax(0,1fr) 360px;
+    }
+  }
+  .xl\:grid-cols-\[minmax\(0\,1\.4fr\)_minmax\(340px\,0\.6fr\)\] {
+    @media (width >= 80rem) {
+      grid-template-columns: minmax(0,1.4fr) minmax(340px,0.6fr);
+    }
+  }
+  .xl\:grid-cols-\[minmax\(0\,1fr\)_390px\] {
+    @media (width >= 80rem) {
+      grid-template-columns: minmax(0,1fr) 390px;
     }
   }
   .xl\:border-r {

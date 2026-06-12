@@ -58,6 +58,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             </div>
             <div className="flex gap-3">
               <Link href="/" className="border border-white/25 px-5 py-2.5 text-sm text-white transition hover:bg-white hover:text-black">View shop</Link>
+              <Link href={`/admin/insights?token=${encodeURIComponent(params.token || '')}`} className="border border-white/25 px-5 py-2.5 text-sm text-white transition hover:bg-white hover:text-black">View insight</Link>
               <Link href="/main-product" className="bg-white px-5 py-2.5 text-sm font-medium text-black transition hover:bg-[#f1d9df]">Products</Link>
             </div>
           </div>
