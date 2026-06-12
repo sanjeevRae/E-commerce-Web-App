@@ -7,8 +7,13 @@ import { ChevronDown, Menu, Search, ShoppingCart, X } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useCustomerAuth } from '@/context/CustomerAuthContext';
 import type { Product } from '@/data/products';
+import type { NoticeBanner } from '@/lib/storefront';
 
-export default function Navbar() {
+type NavbarProps = {
+  notices?: NoticeBanner[];
+};
+
+export default function Navbar({ notices = [] }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
@@ -19,11 +24,20 @@ export default function Navbar() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [countdown, setCountdown] = useState('22h37m54s');
+  const [fallbackCountdownTarget] = useState(() => Date.now() + (22 * 60 * 60 + 37 * 60 + 54) * 1000);
   const { totalItems, trackActivity } = useCart();
   const { user, openLogin, logout } = useCustomerAuth();
   const router = useRouter();
   const pathname = usePathname();
   const isHome = pathname === '/';
+  const now = Date.now();
+  const activeNotice = notices.find(notice => {
+    if (notice.enabled === false) return false;
+    const startsAt = notice.startsAt ? Date.parse(notice.startsAt) : 0;
+    const endsAt = notice.endsAt ? Date.parse(notice.endsAt) : Number.POSITIVE_INFINITY;
+    return now >= startsAt && now <= endsAt;
+  }) ?? notices.find(notice => notice.enabled !== false);
+  const countdownTarget = activeNotice?.countdownTo ? Date.parse(activeNotice.countdownTo) : fallbackCountdownTarget;
   const displayName = user?.name?.trim() || user?.email?.split('@')[0] || 'Profile';
   const initials = displayName
     .split(' ')
@@ -56,7 +70,7 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    const saleEndsAt = Date.now() + (22 * 60 * 60 + 37 * 60 + 54) * 1000;
+    const saleEndsAt = Number.isFinite(countdownTarget) ? countdownTarget : Date.now();
 
     const updateCountdown = () => {
       const timeLeft = Math.max(0, saleEndsAt - Date.now());
@@ -69,7 +83,7 @@ export default function Navbar() {
     updateCountdown();
     const timer = window.setInterval(updateCountdown, 1000);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [countdownTarget]);
 
   useEffect(() => {
     if (!isSearchOpen) return;
@@ -132,7 +146,8 @@ export default function Navbar() {
       {isHome && (
         <div className={`bg-[#1d1d1d] py-2.5 text-center text-white transition-transform duration-300 ${isScrolled && !isMobileMenuOpen ? '-translate-y-full' : 'translate-y-0'}`}>
           <span className="text-sm tracking-[0.01em] sm:text-base">
-            Get 50% Off This Summer Sale. Grab It Fast! <strong className="ml-1 inline-block">{countdown}</strong>
+{activeNotice?.quote ? <span className="mr-2 italic">&quot;{activeNotice.quote}&quot;</span> : null}
+            {activeNotice?.message || 'Get 50% Off This Summer Sale. Grab It Fast!'} <strong className="ml-1 inline-block">{countdown}</strong>
           </span>
         </div>
       )}
@@ -342,6 +357,8 @@ export default function Navbar() {
     </>
   );
 }
+
+
 
 
 

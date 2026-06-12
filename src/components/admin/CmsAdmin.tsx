@@ -3,11 +3,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import MediaPicker from '@/components/admin/MediaPicker';
 
-type Field = { key: string; label: string; type?: 'text' | 'number' | 'textarea' | 'checkbox' | 'image' | 'list' };
+type Field = { key: string; label: string; type?: 'text' | 'number' | 'textarea' | 'checkbox' | 'image' | 'list' | 'datetime' };
 type Config = { key: string; title: string; eyebrow: string; path: string; idField: string; fields: Field[] };
 type Item = Record<string, string | number | boolean | string[] | undefined>;
 
 const configs: Config[] = [
+  { key: 'notice', title: 'Notice Banner', eyebrow: 'Top message', path: 'homepage/noticeBanners/items', idField: 'id', fields: [
+    { key: 'id', label: 'ID' }, { key: 'title', label: 'Title' }, { key: 'message', label: 'Banner message', type: 'textarea' }, { key: 'quote', label: 'Quote / highlight' }, { key: 'countdownTo', label: 'Countdown end time', type: 'datetime' }, { key: 'startsAt', label: 'Starts at', type: 'datetime' }, { key: 'endsAt', label: 'Ends at', type: 'datetime' }, { key: 'ctaLabel', label: 'CTA label' }, { key: 'ctaHref', label: 'CTA link' }, { key: 'enabled', label: 'Enabled', type: 'checkbox' },
+  ]},
   { key: 'hero', title: 'Hero Banners', eyebrow: 'First impression', path: 'homepage/heroBanners/items', idField: 'id', fields: [
     { key: 'id', label: 'ID' }, { key: 'title', label: 'Title' }, { key: 'description', label: 'Description', type: 'textarea' }, { key: 'image', label: 'Image', type: 'image' }, { key: 'primaryLabel', label: 'Primary label' }, { key: 'primaryHref', label: 'Primary link' }, { key: 'secondaryLabel', label: 'Secondary label' }, { key: 'secondaryHref', label: 'Secondary link' }, { key: 'enabled', label: 'Enabled', type: 'checkbox' },
   ]},
@@ -19,6 +22,21 @@ const configs: Config[] = [
   { key: 'testimonials', title: 'Testimonials', eyebrow: 'Customer proof', path: 'testimonials', idField: 'id', fields: [{ key: 'id', label: 'ID' }, { key: 'name', label: 'Name' }, { key: 'rating', label: 'Rating', type: 'number' }, { key: 'text', label: 'Text', type: 'textarea' }, { key: 'avatar', label: 'Avatar', type: 'image' }, { key: 'date', label: 'Date' }] },
 ];
 
+function defaultNoticeItem(): Item {
+  return {
+    id: 'main-notice',
+    title: 'Summer Sale',
+    message: 'Get 50% Off This Summer Sale. Grab It Fast!',
+    quote: '',
+    countdownTo: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    startsAt: '',
+    endsAt: '',
+    ctaLabel: 'Shop now',
+    ctaHref: '/main-product',
+    enabled: true,
+  };
+}
+
 function textValue(item: Item, keys: string[], fallback = 'Untitled') {
   const value = keys.map(key => item[key]).find(Boolean);
   return String(value || fallback);
@@ -28,22 +46,36 @@ function imageValue(item: Item) {
   return String(item.image || item.avatar || '');
 }
 
+function dateTimeLocalValue(value: Item[string]) {
+  if (!value) return '';
+  const date = new Date(String(value));
+  if (Number.isNaN(date.getTime())) return String(value);
+  const pad = (part: number) => String(part).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function dateTimeStoredValue(value: string) {
+  return value ? new Date(value).toISOString() : '';
+}
+
 export default function CmsAdmin({ token }: { token: string }) {
   const [activeKey, setActiveKey] = useState(configs[0].key);
   const config = useMemo(() => configs.find(item => item.key === activeKey) ?? configs[0], [activeKey]);
   const [items, setItems] = useState<Item[]>([]);
-  const [form, setForm] = useState<Item>({ enabled: true });
+  const [form, setForm] = useState<Item>(defaultNoticeItem());
   const [status, setStatus] = useState('');
 
   const load = useCallback(async () => {
     setStatus('Loading current content...');
     const res = await fetch(`/api/admin/cms?path=${encodeURIComponent(config.path)}`, { headers: { 'x-admin-token': token } });
     const data = await res.json();
-    setItems(data.items ?? []);
+    const nextItems = data.items ?? [];
+    setItems(nextItems);
+    if (config.key === 'notice' && nextItems.length === 0) setForm(defaultNoticeItem());
     setStatus(res.ok ? '' : data.error || 'Could not load content.');
-  }, [config.path, token]);
+  }, [config.key, config.path, token]);
 
-  useEffect(() => { setForm({ enabled: true }); void load(); }, [config.path, load]);
+  useEffect(() => { setForm(config.key === 'notice' ? defaultNoticeItem() : { enabled: true }); void load(); }, [config.key, config.path, load]);
 
   const save = async () => {
     const id = String(form[config.idField] || '').trim();
@@ -63,7 +95,6 @@ export default function CmsAdmin({ token }: { token: string }) {
     setStatus(res.ok ? 'Deleted.' : data.error || 'Delete failed.');
     if (res.ok) await load();
   };
-
 
   const previewImage = imageValue(form);
   const selectedId = String(form[config.idField] || '');
@@ -97,12 +128,12 @@ export default function CmsAdmin({ token }: { token: string }) {
             <span className="bg-[#f1ede7] px-3 py-1 text-xs font-semibold text-[#666]">{items.length}</span>
           </div>
           <div className="mt-5 grid max-h-[620px] gap-3 overflow-auto pr-1">
-            {items.length === 0 && <p className="border border-dashed border-[#d8d2ca] p-5 text-sm text-[#777]">No saved items yet.</p>}
+            {items.length === 0 && <p className="border border-dashed border-[#d8d2ca] p-5 text-sm text-[#777]">No saved items yet. A draft is ready in the editor.</p>}
             {items.map(item => {
               const id = String(item.id);
               return (
                 <button key={id} onClick={() => setForm(item)} className={`flex items-center gap-3 border p-3 text-left transition ${selectedId === id ? 'border-[#111111] bg-[#f8f5f0]' : 'border-[#ebe6df] hover:border-[#c8beb4]'}`}>
-                  <img src={imageValue(item)} alt="" className="h-16 w-16 bg-[#eee9e2] object-cover" />
+                  {config.key === 'notice' ? <span className="flex h-16 w-16 items-center justify-center bg-[#111] text-xs font-semibold text-white">Notice</span> : <img src={imageValue(item)} alt="" className="h-16 w-16 bg-[#eee9e2] object-cover" />}
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-semibold">{textValue(item, ['title', 'name', 'id'])}</span>
                     <span className="mt-1 block truncate text-xs text-[#777]">{id}</span>
@@ -116,7 +147,7 @@ export default function CmsAdmin({ token }: { token: string }) {
         <div className="border-b border-[#eee8e1] p-5 md:p-6 xl:border-b-0 xl:border-r">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-xl font-semibold">Editor</h3>
-            <button onClick={() => setForm({ enabled: true })} className="border border-[#ded8d0] px-4 py-2 text-sm font-medium hover:border-[#111]">New item</button>
+            <button onClick={() => setForm(config.key === 'notice' ? defaultNoticeItem() : { enabled: true })} className="border border-[#ded8d0] px-4 py-2 text-sm font-medium hover:border-[#111]">New item</button>
           </div>
 
           <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -130,6 +161,8 @@ export default function CmsAdmin({ token }: { token: string }) {
                     <input type="checkbox" checked={Boolean(form[field.key])} onChange={event => setForm({ ...form, [field.key]: event.target.checked })} />
                     Visible on storefront
                   </span>
+                ) : field.type === 'datetime' ? (
+                  <input type="datetime-local" value={dateTimeLocalValue(form[field.key])} onChange={event => setForm({ ...form, [field.key]: dateTimeStoredValue(event.target.value) })} className="border border-[#ded8d0] bg-[#fbfaf8] px-3 py-2 text-sm font-normal outline-none transition focus:border-[#111111]" />
                 ) : field.type === 'list' ? (
                   <input type="text" value={Array.isArray(form[field.key]) ? (form[field.key] as string[]).join(', ') : String(form[field.key] ?? '')} onChange={event => setForm({ ...form, [field.key]: event.target.value.split(',').map(item => item.trim()).filter(Boolean) })} className="border border-[#ded8d0] bg-[#fbfaf8] px-3 py-2 text-sm font-normal outline-none transition focus:border-[#111111]" />
                 ) : (
@@ -159,11 +192,20 @@ export default function CmsAdmin({ token }: { token: string }) {
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8f1f35]">Live preview</p>
           <h3 className="mt-1 text-xl font-semibold">Current draft</h3>
           <div className="mt-5 overflow-hidden border border-[#ded8d0] bg-white">
-            <div className="relative aspect-[4/3] bg-[#e8e2db]">
-              {previewImage ? <img src={previewImage} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-sm text-[#777]">Image preview</div>}
-              {config.key === 'hero' && <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-5 text-white"><p className="text-2xl font-semibold leading-tight">{textValue(form, ['title'], 'Hero title')}</p><p className="mt-2 line-clamp-2 text-sm text-white/80">{textValue(form, ['description'], 'Hero description appears here.')}</p></div>}
-            </div>
-            {config.key !== 'hero' && (
+            {config.key === 'notice' ? (
+              <div className="bg-[#111] p-5 text-white">
+                <p className="text-xs uppercase tracking-[0.18em] text-white/55">{textValue(form, ['title'], 'Notice')}</p>
+                <p className="mt-3 text-lg font-semibold">{textValue(form, ['message'], 'Notice message appears here.')}</p>
+                {form.quote ? <p className="mt-2 text-sm italic text-white/75">&quot;{String(form.quote)}&quot;</p> : null}
+                {form.countdownTo ? <p className="mt-3 text-xs text-white/65">Countdown ends: {dateTimeLocalValue(form.countdownTo)}</p> : null}
+              </div>
+            ) : (
+              <div className="relative aspect-[4/3] bg-[#e8e2db]">
+                {previewImage ? <img src={previewImage} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-sm text-[#777]">Image preview</div>}
+                {config.key === 'hero' && <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-5 text-white"><p className="text-2xl font-semibold leading-tight">{textValue(form, ['title'], 'Hero title')}</p><p className="mt-2 line-clamp-2 text-sm text-white/80">{textValue(form, ['description'], 'Hero description appears here.')}</p></div>}
+              </div>
+            )}
+            {config.key !== 'hero' && config.key !== 'notice' && (
               <div className="p-5">
                 <p className="text-lg font-semibold">{textValue(form, ['title', 'name'], `${config.title} title`)}</p>
                 <p className="mt-2 line-clamp-3 text-sm leading-6 text-[#666]">{textValue(form, ['description', 'text'], 'Short content preview appears here.')}</p>
@@ -179,6 +221,3 @@ export default function CmsAdmin({ token }: { token: string }) {
     </section>
   );
 }
-
-
-

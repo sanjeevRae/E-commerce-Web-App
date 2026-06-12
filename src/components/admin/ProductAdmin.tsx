@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import type { Product } from '@/data/products';
 import MediaPicker from '@/components/admin/MediaPicker';
 
@@ -121,23 +122,27 @@ export default function ProductAdmin({ token }: Props) {
             <h2 className="mt-2 text-3xl font-semibold tracking-tight">Manage product inventory</h2>
             <p className="mt-2 text-sm text-[#666666]">Create, edit, preview, upload images, and publish product data to Firestore.</p>
           </div>
-          <div className="grid grid-cols-3 border border-[#ded8d0] bg-[#faf8f5] text-center">
-            <div className="border-r border-[#ded8d0] px-5 py-3">
-              <p className="text-xl font-semibold">{items.length}</p>
-              <p className="text-xs uppercase tracking-[0.14em] text-[#777]">Products</p>
-            </div>
-            <div className="border-r border-[#ded8d0] px-5 py-3">
-              <p className="text-xl font-semibold">{items.reduce((sum, item) => sum + Number(item.stock || 0), 0)}</p>
-              <p className="text-xs uppercase tracking-[0.14em] text-[#777]">Stock</p>
-            </div>
-            <div className="px-5 py-3">
-              <p className="text-xl font-semibold">{items.filter(item => Number(item.stock || 0) > 0).length}</p>
-              <p className="text-xs uppercase tracking-[0.14em] text-[#777]">Active</p>
+          <div className="flex flex-col gap-3">
+            <Link href={`/admin/products?token=${encodeURIComponent(token)}`} className="inline-flex items-center justify-center border-2 border-[#111] bg-[#111] px-5 py-3 text-center text-sm font-semibold uppercase tracking-[0.08em] text-white shadow-[0_12px_28px_rgba(0,0,0,0.18)] transition hover:bg-white hover:text-[#111]">
+              View all products
+            </Link>
+            <div className="grid grid-cols-3 border border-[#ded8d0] bg-[#faf8f5] text-center">
+              <div className="border-r border-[#ded8d0] px-5 py-3">
+                <p className="text-xl font-semibold">{items.length}</p>
+                <p className="text-xs uppercase tracking-[0.14em] text-[#777]">Products</p>
+              </div>
+              <div className="border-r border-[#ded8d0] px-5 py-3">
+                <p className="text-xl font-semibold">{items.reduce((sum, item) => sum + Number(item.stock || 0), 0)}</p>
+                <p className="text-xs uppercase tracking-[0.14em] text-[#777]">Stock</p>
+              </div>
+              <div className="px-5 py-3">
+                <p className="text-xl font-semibold">{items.filter(item => Number(item.stock || 0) > 0).length}</p>
+                <p className="text-xs uppercase tracking-[0.14em] text-[#777]">Active</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
       <div className="grid xl:grid-cols-[360px_minmax(0,1fr)_360px]">
         <aside className="border-b border-[#eee8e1] p-5 md:p-6 xl:border-b-0 xl:border-r">
           <div className="flex items-center justify-between gap-3">
@@ -246,6 +251,9 @@ export default function ProductAdmin({ token }: Props) {
     </section>
   );
 }
+
+
+
 
 
 
